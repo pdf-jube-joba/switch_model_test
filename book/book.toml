@@ -1,0 +1,5 @@
+[book]
+authors = ["pdf-jube-joba"]
+language = "en"
+src = "src"
+title = "test"

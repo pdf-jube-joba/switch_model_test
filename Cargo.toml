@@ -1,0 +1,6 @@
+[workspace]
+resolver = "2"
+members = [
+    "web",
+    "models/*/core", "models/*/web", "web_builder",
+]
