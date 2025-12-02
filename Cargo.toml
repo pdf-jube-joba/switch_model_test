@@ -1,6 +1,17 @@
 [workspace]
 resolver = "2"
 members = [
-    "web",
-    "models/*/core", "models/*/web", "web_builder",
+    "web_model_api",
+    "web_builder",
+    "models/*/core",
+    "models/*/for_web",
 ]
+
+[workspace.dependencies]
+wasm-bindgen = "0.2.84"
+web-sys = { version = "0.3.61", features = ["DragEvent", "DataTransfer", "InputEvent", "FileReaderSync", "Window"]}
+serde-wasm-bindgen = "0.6.5"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = { version = "1.0.0" }
+
+web_model_api = { path = "web_model_api" }

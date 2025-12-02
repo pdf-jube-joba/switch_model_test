@@ -3,4 +3,14 @@ name = "web_builder"
 version = "0.1.0"
 edition = "2024"
 
+[lib]
+crate-type = ["cdylib", "rlib"]
+
 [dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+wasm-bindgen = { workspace = true }
+web-sys = { workspace = true }
+web_model_api = { path = "../web_model_api" }
+
+model_a_web = { path = "../models/model_a/for_web" }

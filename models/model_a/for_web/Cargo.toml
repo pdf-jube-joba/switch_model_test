@@ -1,0 +1,10 @@
+[package]
+name = "model_a_web"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+model_a = { path = "../core" }
+web_model_api = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
