@@ -13,4 +13,8 @@ wasm-bindgen = { workspace = true }
 web-sys = { workspace = true }
 web_model_api = { path = "../web_model_api" }
 
-model_a_web = { path = "../models/model_a/for_web" }
+model_a_web = { path = "../models/model_a/for_web", optional = true  }
+model_b_web = { path = "../models/model_b/for_web", optional = true  }
+[features]
+default = [ "model_a_web" ]
+model_b = ["model_b_web"]
