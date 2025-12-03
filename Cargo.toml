@@ -4,7 +4,7 @@ members = [
     "web_model_api",
     "web_builder",
     "models/*/core",
-    "models/*/for_web", "playground",
+    "models/*/for_web",
 ]
 
 [workspace.dependencies]
