@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """
 Build and serve per-feature WASM bundles for web_builder using wasm-pack.
+Also generates HTML scaffolding that loads the right bundle based on
+data-model attributes and per-feature view.js files.
 
 Usage:
   python build_and_serve.py build
@@ -47,8 +49,11 @@ def ensure_wasm_pack() -> None:
 def build_all(features: Iterable[str], release: bool) -> None:
     ASSETS_DIR.mkdir(parents=True, exist_ok=True)
 
+    write_loader()
+
     for feature in features:
         build_feature(feature, release=release)
+        ensure_view_js(feature)
         write_feature_page(feature)
 
     write_index(features)
@@ -102,20 +107,57 @@ def write_feature_page(feature: str) -> None:
 <meta charset="utf-8">
 <title>{feature} playground</title>
 <h1>{feature}</h1>
-<p>Loading wasm bundle <code>{feature}.js</code> / <code>{feature}_bg.wasm</code>.</p>
-<pre id="status">loading...</pre>
+<div data-model="{feature}">
+  <canvas width="640" height="480"></canvas>
+</div>
 <script type="module">
-  import init, * as wasm from "./{feature}.js";
-  init().then(() => {{
-    document.getElementById("status").textContent = "loaded";
-    console.log("wasm exports", wasm);
-  }}).catch(err => {{
-    document.getElementById("status").textContent = "load failed";
-    console.error(err);
-  }});
+  import {{ boot }} from "../loader.js";
+  boot(document.querySelector('[data-model]'));
 </script>
 """
     (ASSETS_DIR / feature / "index.html").write_text(html, encoding="utf-8")
+
+
+def write_loader() -> None:
+    """Shared script that loads wasm + view.js based on data-model attribute."""
+    js = r"""export async function boot(container) {
+        if (!container) throw new Error("container not found");
+        const model = container.dataset.model;
+        if (!model) throw new Error("data-model attribute missing");
+
+        const wasmModule = await import(new URL(`./${model}/${model}.js`, import.meta.url));
+        await wasmModule.default();
+
+        const view = await import(new URL(`./${model}/view.js`, import.meta.url));
+        if (typeof view.render === "function") {
+          view.render(container, wasmModule);
+        } else {
+          console.warn("view.js missing render(container, wasmExports)");
+        }
+        }
+        """
+    (ASSETS_DIR / "loader.js").write_text(js, encoding="utf-8")
+
+
+def ensure_view_js(feature: str) -> None:
+    """Create a stub view.js for a feature if none exists."""
+    view_path = ASSETS_DIR / feature / "view.js"
+    if view_path.exists():
+        return
+    stub = f"""// Customize rendering for {feature} here.
+export function render(container, wasm) {{
+  const canvas = container.querySelector("canvas");
+  const ctx = canvas.getContext("2d");
+  ctx.fillStyle = "#101010";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = "#21c55d";
+  ctx.font = "18px sans-serif";
+  ctx.fillText(`model: {feature}`, 16, 28);
+  ctx.fillText("wasm exports available in console", 16, 52);
+  console.log("{feature} wasm exports", wasm);
+}}
+"""
+    view_path.write_text(stub, encoding="utf-8")
 
 
 def serve(port: int) -> None:
